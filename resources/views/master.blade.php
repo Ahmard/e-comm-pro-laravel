@@ -27,13 +27,45 @@
         height: 500px;
         padding-top: 100px;
     }
-
-    .items-data {
-        color: red;
+    .whole-product-slider{
+        margin-left: 0px;
+        margin-bottom: 10px;
     }
-
+    img.slider-image{
+        height: 450px !important;
+        width: 850px !important;
+        padding-left:290px;
+       
+    }
+    .carousel-caption{
+        background-color: gray;
+        border-radius: 10px;
+        color: red;
+        opacity:0.5;
+        
+        
+    }
     .pro-style {
         margin-top: 20px;
+    }
+    
+    
+    img.img-latest{
+        height: 350px !important;
+        width: 400px !important;
+    }
+    .img-latest-all{
+        margin:10px;
+        float:left;
+
+        
+    }
+    .detail-img{
+        height: 400px;
+        margin-bottom: 30px;
+    }
+    .search-box{
+        width:500px !important;
     }
 </style>
 </html>

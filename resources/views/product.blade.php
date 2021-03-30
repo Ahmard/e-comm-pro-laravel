@@ -1,6 +1,6 @@
 @extends('master')
 @section('content')
-    <b>Hello world</b>
+    
     <div class="container custom-product">
         <div id="myCarousel" class="carousel slide" data-ride="carousel">
             <!-- Indicators -->
@@ -11,19 +11,23 @@
             </ol>
 
             <!-- Wrapper for slides -->
-            <div class="carousel-inner">
+            <div class="carousel-inner whole-product-slider">
 
                 @foreach ($products as $item)
-                    <div class="item {{ $item->id==1? 'active': ''}}">
-                        <img src="{{ url($item->gallery) }}" alt="fuck" width="250" height="250">
+                
+                    <div class="item {{ $item['id']==1?' active': ''}}">
+                        <a href="detail/{{ $item['id'] }}">
+                        <img class="slider-image" src="{{ url($item->gallery) }}">
                         <div class="carousel-caption">
                             <h3>{{ $item->name }}</h3>
                             <p>{{ $item->description }}</p>
 
                         </div>
+                    </a>
                     </div>
+                    @endforeach
             </div>
-        @endforeach
+       
 
 
 
@@ -40,37 +44,17 @@
         </div>
     </div>
 
-    @foreach ($products as $item)
-        <div class="container pro-style">
-            <table border="1">
-                <tr>
-                    <td>Product ID:</td>
-                    <td>{{ $item->id }}</td>
-                </tr>
-                <tr>
-                    <td>Product Name:</td>
-                    <td>{{ $item->name }}</td>
-                </tr>
-                <tr>
-                    <td>Product Price:</td>
-                    <td>{{ $item->price }}</td>
-                </tr>
-                <tr>
-                    <td>Product Description:</td>
-                    <td>{{ $item->description }}</td>
-                </tr>
-                <tr>
-                    <td>Product ID:</td>
-                    <td>{{ $item->category }}</td>
-                </tr>
-                <tr>
-                    <td>Product ID:</td>
-                    <td><img src="{{  }}" alt="error"></td>
-                </tr>
-            </table>
-        </div>
+                    @foreach ($products as $item)
+                
+                    <div class="img-latest-all">
+                        <a href="detail/{{ $item['id'] }}">
+                        <img class="img-latest" src="{{ url($item->gallery) }}">
+                        </a>
+                    </div>  
+                        
+                    @endforeach
 
-    @endforeach
+                   
 
 @endsection
 
