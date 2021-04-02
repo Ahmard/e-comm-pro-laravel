@@ -67,5 +67,17 @@
     .search-box{
         width:500px !important;
     }
+    img.img-search{
+        width: 200px !important;
+    }
+    .search-product{
+        margin-bottom: 15px;
+    }
+    .trending-product-title{
+        margin-left:105px;
+        width:460px;
+        padding: 5px;
+        border-bottom: 2px solid black;
+    }
 </style>
 </html>
