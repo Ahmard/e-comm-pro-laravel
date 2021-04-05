@@ -69,6 +69,7 @@
     }
     img.img-search{
         width: 200px !important;
+        
     }
     .search-product{
         margin-bottom: 15px;
@@ -78,6 +79,12 @@
         width:460px;
         padding: 5px;
         border-bottom: 2px solid black;
+    }
+    .cart-list-delivider{
+        border-bottom:1px solid #ccc;
+        margin-bottom:20px;
+        padding-bottom:20px;
+        margin-left:20px;
     }
 </style>
 </html>
