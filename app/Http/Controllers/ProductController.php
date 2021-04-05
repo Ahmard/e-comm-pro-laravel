@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 use illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Cart;
+use Session;
 use App\Models\User;
 class ProductController extends Controller
 {
@@ -22,16 +24,21 @@ class ProductController extends Controller
 
     function search(Request $req)
     {
-      $data = Product::where('name', 'like', '%'.$req->input('query').'%')->get();
+      $data = Product::WHERE('name', 'like', '%'.$req->input('query').'%')->get();
       return view('search', ['products'=>$data]);
 
     }
 
     function addToCart(Request $req)
     {
-      if($req->session()->has('user'))
+      if(session()->has('user'))
       {
-        return "Hi";
+        $cart = new Cart;
+        $cart->user_id = session()->get('user')['id'];
+        $cart->product_id = request()->post('product_id');
+        $cart->save();
+        return redirect('/');
+
       }
       else
       {
@@ -39,5 +46,12 @@ class ProductController extends Controller
       }
       
     }
+
+    static function  cartItem()
+    {
+      $userId= Session::get('user')['id'];
+      return Cart::where('user_id', $userId)->count();
+    }
+    
 
 }
