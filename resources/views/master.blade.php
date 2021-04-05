@@ -57,19 +57,21 @@
     .img-latest-all{
         margin:10px;
         float:left;
-
         
+        box-shadow: 0 0 10px 5px;
     }
+    
     .detail-img{
         height: 400px;
         margin-bottom: 30px;
+        box-shadow: 0 0 10px 5px;
     }
     .search-box{
         width:500px !important;
     }
     img.img-search{
         width: 200px !important;
-        
+        box-shadow: 0 0 10px 5px;
     }
     .search-product{
         margin-bottom: 15px;

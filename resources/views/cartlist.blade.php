@@ -6,7 +6,8 @@
                 <div class="container">
                     <h4>Result for Products</h4>
                 </div>
-                
+                <a href="ordernow" class="btn btn-success">Order Now</a><br><br>
+
                 @foreach ($products as $item)
                     <div class="row searched-item cart-list-delivider">
                         <div class="col-sm-3">
@@ -25,12 +26,15 @@
                         </div>
 
                         <div class="col-sm-3">
-                            <button class="btn btn-warning">Remove From Cart</button>
+                            <a href="/removecart/{{ $item->cart_id }}" class="btn btn-warning">Remove From Cart</a>
                         </div>
                     </div>
                     
                 @endforeach
             </div>
+            <a href="ordernow" class="btn btn-success">Order Now</a><br><br>
+
         </div>
 </div>    
+
 @endsection

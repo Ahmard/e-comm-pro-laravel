@@ -3,7 +3,10 @@
     <div class ="container">
         <div class="row">
             <div class="col-sm-6">
+                <div class="img-detail">
                 <img class="detail-img" src="{{ url($product->gallery) }}" alt="">
+
+                </div>
             </div>
         
             <div class="col-sm-6">
