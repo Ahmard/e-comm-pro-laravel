@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Shopping Cart')
+
 @section('content')
     <div class="container-fluid" style="padding-top: 150px">
         <div class="row d-flex justify-content-center">
@@ -9,7 +11,7 @@
                         <div class="card-header">
                             <div class="d-flex justify-content-between">
                                 <h4 class="text-uppercase">Shopping Cart</h4>
-                                <a href="ordernow" role="button" class="btn btn-success">Order Now</a>
+                                <a href="{{route('order.now')}}" role="button" class="btn btn-success">Order</a>
                             </div>
                         </div>
                     </div>
@@ -19,7 +21,9 @@
                             <th>S/N</th>
                             <th>IMAGE</th>
                             <th>NAME</th>
+                            <th>QUANTITY</th>
                             <th>PRICE</th>
+                            <th>TOTAL PRICE</th>
                         </tr>
                         </thead>
 
@@ -34,8 +38,12 @@
                                     <img src="{{$product->gallery}}" alt="{{$product->name}}"
                                          class="img-fluid img-thumbnail" style="width: 100px; height: 100px">
                                 </td>
-                                <td>{{$product->name}}</td>
-                                <td>{{$product->price}}</td>
+                                <td>
+                                    <a href="{{route('product.info', $product->id)}}" class="text-uppercase">{{$product->name}}</a>
+                                </td>
+                                <td>{{$product->quantity}}</td>
+                                <td>&#8358; {{\App\Models\Product::formatMoney($product->price)}}</td>
+                                <td>&#8358; {{\App\Models\Product::formatMoney($product->price * $product->quantity)}}</td>
                             </tr>
                         @endforeach
                         </tbody>

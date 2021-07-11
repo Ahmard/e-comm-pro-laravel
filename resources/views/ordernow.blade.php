@@ -1,44 +1,46 @@
-@extends('master')
-@section('content')
-    <div class="custom-product">
-        <div class="col-sm-10">
-             <table class="table">
-                <tbody>
-                    <tr>
-                        <td>Amount</td>
-                        <td>${{ $total }}</td>
-                    </tr>
-                    <tr>
-                        <td>Tax</td>
-                        <td>$ 0</td>
-                    </tr>
-                    <tr>
-                        <td>Delivery</td>
-                        <td>$ 10</td>
-                    </tr>
-                    <tr>
-                        <td>Total Amount</td>
-                        <td>${{ $total + 10 }}</td>
-                    </tr>
-                </tbody>
-             </table>
+@extends('layouts.app')
 
-             <div>
-                 <form action="/orderplace" method="POST">
-                    @csrf
-                     <div class="form-group">
-                         <textarea name="address"placeholder="enter your address" class="form-control"></textarea>
-                     </div>
-                     <div class="form-group">
-                         <label for="pwd">Payment Method</label><br> <br>
-                         <input type="radio" value="cash" name="payment"> <span>Online Payment</span> <br> <br>
-                         <input type="radio" value="cash" name="payment"> <span>EMI Payment</span> <br> <br>
-                         <input type="radio" value="cash" name="payment"> <span>Payment On Delivery</span> <br> <br>
-                     </div>
-                     <button type="submit" class="btn btn-default"> Order Now</button><br><br>
-                 </form>
-             </div>
+@section('title', 'Order')
+
+@section('content')
+    <div class="container-fluid" style="padding-top: 150px">
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-uppercase font-weight-bold">Order Summary</div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tbody>
+                            <tr>
+                                <td>Delivery</td>
+                                <td><i>Free Delivery</i></td    >
+                            </tr>
+                            <tr>
+                                <td>Total Amount</td>
+                                <td>&#8358;{{ \App\Models\Product::formatMoney($total) }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <form action="/orderplace" method="POST">
+                            @csrf
+                            <div class="form-group">
+                                <input name="address" placeholder="Enter your address" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <input name="mobile_number" placeholder="Enter phone number" class="form-control">
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-primary"> Order Now</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-</div>    
+    </div>
 
 @endsection

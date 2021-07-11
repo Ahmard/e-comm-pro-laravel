@@ -60,8 +60,9 @@ class ProductController extends Controller
             $cart = new Cart;
             $cart->user_id = Auth::user()['id'];
             $cart->product_id = request()->post('product_id');
+            $cart->quantity = request()->post('quantity');
             $cart->save();
-            return redirect('/');
+            return redirect(route('cart'));
         }
 
         return redirect('/login');
@@ -69,7 +70,7 @@ class ProductController extends Controller
 
     public static function cartItem(): int
     {
-        $userId = session()->get('user')['id'];
+        $userId = Auth::user()['id'];
         return Cart::query()
             ->where('user_id', $userId)
             ->count();
@@ -81,7 +82,7 @@ class ProductController extends Controller
         $products = DB::table('cart')
             ->join('products', 'cart.product_id', 'products.id')
             ->where('cart.user_id', $userId)
-            ->select('products.*', 'cart.id as cart_id')
+            ->select('products.*', 'cart.quantity', 'cart.id as cart_id')
             ->get();
 
         return view('cartlist', ['products' => $products]);
@@ -95,7 +96,9 @@ class ProductController extends Controller
 
     public function orderNow(): Factory|View|Application
     {
-        $userId = session()->get('user')['id'];
+        $userId = Auth::user()['id'];
+
+        $allCart = Cart::query()->where('user_id', $userId)->get();
 
         $total = DB::table('cart')
             ->join('products', 'cart.product_id', 'products.id')
@@ -107,7 +110,7 @@ class ProductController extends Controller
 
     public function orderPlace(Request $req): Redirector|Application|RedirectResponse
     {
-        $userId = session()->get('user')['id'];
+        $userId = Auth::user()['id'];
         $allCart = Cart::query()->where('user_id', $userId)->get();
 
         foreach ($allCart as $cart) {
@@ -116,12 +119,14 @@ class ProductController extends Controller
             $order->user_id = $cart['user_id'];
             $order->status = "pending";
             $order->product_id = $cart['product_id'];
-            $order->payment_method = request()->post('payment');
             $order->payment_status = "pending";
             $order->address = request()->post('address');
+            $order->mobile_number = request()->post('mobile_number');
             $order->save();
+
             Cart::query()->where('user_id', $userId)->delete();
         }
+
         $req->input();
 
         return redirect('/');
@@ -129,7 +134,7 @@ class ProductController extends Controller
 
     public function myOrders(): Factory|View|Application
     {
-        $userId = session()->get('user')['id'];
+        $userId = Auth::user()['id'];
         $orders = DB::table('orders')
             ->join('products', 'orders.product_id', 'products.id')
             ->where('orders.user_id', $userId)

@@ -14,7 +14,12 @@ class Product extends Model
 
     public function getFormattedMoney(): string
     {
-        return number_format($this['price'], 0, ',');
+        return self::formatMoney($this['price']);
+    }
+
+    public static function formatMoney(int $money): string
+    {
+        return number_format($money, 0, ',');
     }
 }
 

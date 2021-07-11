@@ -38,12 +38,13 @@ Route::get('product/{id}', [ProductController::class, 'detail'])
     ->whereNumber('id')
     ->name('product.info');
 Route::get('search', [ProductController::class, 'search']);
-Route::post('add_to_cart', [ProductController::class, 'addToCart']);
-Route::get('cart', [ProductController::class, 'cartList']);
-Route::get('removecart/{id}', [ProductController::class, 'removeCart']);
-Route::get('ordernow', [ProductController::class, 'orderNow']);
-Route::post('orderplace', [ProductController::class, 'orderPlace']);
-Route::get('myorders', [ProductController::class, 'myOrders']);
+Route::post('cart/add', [ProductController::class, 'addToCart'])->name('cart.add');
+Route::get('cart', [ProductController::class, 'cartList'])->name('cart');
+Route::get('cart/{id}/remove', [ProductController::class, 'removeCart'])->name('cart.remove');
+
+Route::get('orders', [ProductController::class, 'myOrders'])->name('orders');
+Route::get('order/now', [ProductController::class, 'orderNow'])->name('order.now');
+Route::post('order/place', [ProductController::class, 'orderPlace'])->name('order.place');
 
 
 

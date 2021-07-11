@@ -46,7 +46,7 @@
                                                                                      alt=""></a>
                             <div class="down-content">
                                 <a href="{{route('product.info', $product['id'])}}"><h4>{{$product['name']}}</h4></a>
-                                <h6>${{$product->getFormattedMoney()}}</h6>
+                                <h6>&#8358;{{$product->getFormattedMoney()}}</h6>
                                 <p>{{$product['description']}}</p>
                                 <ul class="stars">
                                     <li><i class="fa fa-star"></i></li>

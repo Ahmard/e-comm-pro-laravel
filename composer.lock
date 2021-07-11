@@ -4,8 +4,102 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "abb35190a7bb250c94dd18f48f1ea922",
+    "content-hash": "d6e8ea32d9d9ecb23e7f19536f7375a2",
     "packages": [
+        {
+            "name": "ahmard/flutterwave",
+            "version": "0.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ahmard/flutterwave.git",
+                "reference": "37966e94ba88920db1b8eab4456fb7626e01c76c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ahmard/flutterwave/zipball/37966e94ba88920db1b8eab4456fb7626e01c76c",
+                "reference": "37966e94ba88920db1b8eab4456fb7626e01c76c",
+                "shasum": ""
+            },
+            "require": {
+                "ahmard/guzwrap": "^2.4",
+                "ext-json": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^0.12.88",
+                "phpunit/phpunit": "^9.5",
+                "symfony/var-dumper": "^5.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Ahmard\\Flutterwave\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ahmard",
+                    "email": "Ahmard06@gmail.com"
+                }
+            ],
+            "description": "Flutterwave PHP API client",
+            "support": {
+                "issues": "https://github.com/Ahmard/flutterwave/issues",
+                "source": "https://github.com/Ahmard/flutterwave/tree/0.0.6"
+            },
+            "time": "2021-06-03T19:21:32+00:00"
+        },
+        {
+            "name": "ahmard/guzwrap",
+            "version": "2.4.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ahmard/guzwrap.git",
+                "reference": "16f8508c3ade4f8554dc3f3d83802f8d504273f7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ahmard/guzwrap/zipball/16f8508c3ade4f8554dc3f3d83802f8d504273f7",
+                "reference": "16f8508c3ade4f8554dc3f3d83802f8d504273f7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.2",
+                "php": "^7.4 || ^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^0.12.64",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Guzwrap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A wrapper around popular php http client, \"GuzzleHttp\"",
+            "keywords": [
+                "Guzzle",
+                "client",
+                "curl",
+                "guzzlehttp",
+                "http"
+            ],
+            "support": {
+                "issues": "https://github.com/Ahmard/guzwrap/issues",
+                "source": "https://github.com/Ahmard/guzwrap/tree/2.4.2"
+            },
+            "time": "2021-05-29T16:48:42+00:00"
+        },
         {
             "name": "asm89/stack-cors",
             "version": "v2.0.3",

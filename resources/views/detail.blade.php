@@ -16,22 +16,29 @@
                 </div>
 
                 <div class="col-md-4">
-                    <a href="/">
-                        <button class="btn btn-warning">Go Back</button>
-                    </a><br><br>
-                    <h2>Name: {{ $product->name }}</h2>
-                    <h3>Price: {{ $product->price }}</h3>
-                    <h4>Details: {{ $product->description }}</h4>
-                    <h4>Category: {{ $product->category }}</h4>
-
-                    <br><br>
-                    <form action="/add_to_cart" method="POST">
+                    <a href="/" class="btn btn-outline-secondary mb-3">
+                        <i class="fa fa-chevron-left text-uppercase"></i> Go Back
+                    </a>
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item"><b>Name:</b> {{ $product->name }}</div>
+                        <div class="list-group-item"><b>Price:</b> &#8358;{{ $product->price }}</div>
+                        <div class="list-group-item"><b>Details:</b> {{ $product->description }}</div>
+                        <div class="list-group-item"><b>Category:</b> {{ \App\Models\Category::getName($product->category) }}</div>
+                    </div>
+                    <form action="{{route('cart.add')}}" method="POST">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <button class="btn btn-primary">Add To Cart</button>
+                        <div class="mt-3">
+                            <div class="input-group d-flex justify-content-end">
+                                <input type="number" class="form-control" name="quantity" placeholder="Quantity">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary text-uppercase m-0">
+                                        <i class="fa fa-cart-plus"></i> Add To Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </form>
-                    <br><br>
-                    <br><br>
                 </div>
             </div>
         </div>
