@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 
@@ -21,18 +22,24 @@ Route::get('/login', function () {
 });
 
 Route::get('/logout', function () {
-    Session::forget('user');
+    Auth::logout();
     return redirect('login');
 });
+
 Route::view('/register', 'register');
-Route::Post("/login", [UserController::class, 'login']);
-Route::Post("/register", [UserController::class, 'register']);
+Route::post("/login", [UserController::class, 'login']);
+Route::post("/register", [UserController::class, 'register']);
+
+
 Route::get("/", [ProductController::class, 'index']);
+Route::get("/products", [ProductController::class, 'products']);
 Route::get('/product', [ProductController::class, 'index']);
-Route::get('detail/{id}', [ProductController::class, 'detail']);
+Route::get('product/{id}', [ProductController::class, 'detail'])
+    ->whereNumber('id')
+    ->name('product.info');
 Route::get('search', [ProductController::class, 'search']);
 Route::post('add_to_cart', [ProductController::class, 'addToCart']);
-Route::get('cartlist', [ProductController::class, 'cartList']);
+Route::get('cart', [ProductController::class, 'cartList']);
 Route::get('removecart/{id}', [ProductController::class, 'removeCart']);
 Route::get('ordernow', [ProductController::class, 'orderNow']);
 Route::post('orderplace', [ProductController::class, 'orderPlace']);

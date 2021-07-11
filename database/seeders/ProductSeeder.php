@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Product;
+use DirectoryIterator;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Intervention\Image\Image;
+use Intervention\Image\ImageManager;
 
 class ProductSeeder extends Seeder
 {
@@ -14,43 +17,26 @@ class ProductSeeder extends Seeder
      */
     public function run()
     {
-        //
-        DB::table('products')->insert([
-            [
-                'name' => 'Royal',
-                'price' => "15000",
-                'description' => "Royal Sofa with high good quality",
-                'category' => 'chair',
-                'gallery' => 'C:\Users\ANAS MAIMALEE\Desktop\L\e-comm-pro\resources\public\images\IMG-20210216-WA0001.jpg',
-            ],
-            [
-                'name' => 'Tv Stand',
-                'price' => "50000",
-                'description' => "Tv stand with high good quality",
-                'category' => 'tv-Stand',
-                'gallery' => 'C:\Users\ANAS MAIMALEE\Desktop\L\e-comm-pro\resources\public\images\IMG-20210216-WA0002.jpg',
-            ],
-            [
-                'name' => 'Royal',
-                'price' => "150000",
-                'description' => "Royal Sofa with high good quality",
-                'category' => 'chair',
-                'gallery' => 'C:\Users\ANAS MAIMALEE\Desktop\L\e-comm-pro\resources\public\images\IMG-20210216-WA0004~2.jpg',
-            ],
-            [
-                'name' => 'Royal',
-                'price' => "150000",
-                'description' => "Royal Sofa with high good quality",
-                'category' => 'chair',
-                'gallery' => 'C:\Users\ANAS MAIMALEE\Desktop\L\e-comm-pro\resources\public\images\IMG-20210216-WA0003.jpg',
-            ],
-            [
-                'name' => 'Royal',
-                'price' => "150000",
-                'description' => "Royal Sofa with high good quality",
-                'category' => 'chair',
-                'gallery' => 'C:\Users\ANAS MAIMALEE\Desktop\L\e-comm-pro\resources\public\images\IMG-20210216-WA0006.jpg',
-            ]
-        ]);
+        $files = new DirectoryIterator(public_path('images'));
+        $count = 1;
+        foreach ($files as $file) {
+            if ($file->isFile() && !$file->isDot()) {
+                echo "Resizing {$file->getFilename()}...\n";
+                (new ImageManager(['driver' => 'gd']))->make($file->getRealPath())
+                    ->resize(730, 487)
+                    ->save($file->getRealPath());
+
+                echo "Inserting product $count...\n";
+                Product::query()->create([
+                    'name' => "Product $count",
+                    'category' => rand(1, 2),
+                    'price' => (float)rand(1000, 5000),
+                    'description' => "Product $count is really high quality product, don't let this chance pass you",
+                    'gallery' => "images/{$file->getFilename()}",
+                ]);
+            }
+
+            $count += 1;
+        }
     }
 }

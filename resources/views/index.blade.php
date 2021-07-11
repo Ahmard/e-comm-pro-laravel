@@ -1,4 +1,8 @@
 @extends('layouts.app')
+
+@php($navs['in_home'] = true)
+@section('title', 'Homepage')
+
 @section('content')
 
     <!-- Banner Starts Here -->
@@ -32,7 +36,7 @@
                 <div class="col-md-12">
                     <div class="section-heading">
                         <h2>Latest Products</h2>
-                        <a href="products.html">view all products <i class="fa fa-angle-right"></i></a>
+                        <a href="{{url('products')}}">view all products <i class="fa fa-angle-right"></i></a>
                     </div>
                 </div>
                 @foreach($products as $product)

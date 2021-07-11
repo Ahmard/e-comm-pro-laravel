@@ -10,6 +10,11 @@ class Product extends Model
 {
     use HasFactory;
 
-    
+    protected $fillable = ['name', 'category', 'description', 'gallery', 'price'];
+
+    public function getFormattedMoney(): string
+    {
+        return number_format($this['price'], 0, ',');
+    }
 }
 

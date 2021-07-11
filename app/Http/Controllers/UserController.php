@@ -3,29 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     //
-    function login(Request $req)
+    public function login(Request $req): Redirector|string|RedirectResponse|Application
     {
-        $user = User::where(['email' => $req->email])->first();
+        $user = User::query()
+            ->where(['email' => $req->email])
+            ->first();
+
         if (!$user || !Hash::check($req->password, $user->password)) {
-            return "Username or password is not correct";
+            return redirect()->back()
+                ->with('msg:error', "Username or password is not correct");
         } else {
-            $req->session()->put('user', $user);
+            Auth::login($user);
             return redirect('/');
         }
     }
-    function register(Request $req)
+
+
+    public function register(Request $req): Redirector|Application|RedirectResponse
     {
         //return $req->input();
         $user = new User;
-        $user->name=request()->post('name');
-        $user->email=request()->post('email');
-        $user->password=hash::make(request()->post('password'));
+        $user->name = request()->post('name');
+        $user->email = request()->post('email');
+        $user->password = hash::make(request()->post('password'));
         $user->save();
         return redirect('/login');
     }

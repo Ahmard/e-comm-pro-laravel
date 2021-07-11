@@ -1,4 +1,8 @@
 @extends('layouts.app')
+
+@php($navs['in_products'] = true)
+@section('title', 'Products')
+
 @section('content')
 
     <!-- Banner Starts Here -->
@@ -31,8 +35,8 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="section-heading">
-                        <h2>Latest Products</h2>
-                        <a href="products.html">view all products <i class="fa fa-angle-right"></i></a>
+                        <h2>Products</h2>
+                        <!--<a href="products.html">view all products <i class="fa fa-angle-right"></i></a>-->
                     </div>
                 </div>
                 @foreach($products as $product)
@@ -57,6 +61,8 @@
                     </div>
                 @endforeach
             </div>
+
+            <div class="mt-4 d-flex justify-content-center">{{$products->links()}}</div>
         </div>
     </div>
 

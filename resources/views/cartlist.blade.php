@@ -1,40 +1,48 @@
-@extends('master')
+@extends('layouts.app')
+
 @section('content')
-    <div class="custom-product">
-        <div class="col-sm-10">
-            <div class="trending-wrapper">
-                <div class="container">
-                    <h4>Result for Products</h4>
-                </div>
-                <a href="ordernow" class="btn btn-success">Order Now</a><br><br>
-
-                @foreach ($products as $item)
-                    <div class="row searched-item cart-list-delivider">
-                        <div class="col-sm-3">
-                            <a href="detail/{{ $item->id }}">
-                                <img class="img-search" src="{{ url($item->gallery)}}" alt="">
-                
-                                </a>
-                        </div>
-
-                        <div class="col-sm-4">
-                                <div class="">
-                                    <h2>{{ $item->name }}</h2>
-                                    <h5>{{ $item->description }}</h5>
-        
-                                </div>
-                        </div>
-
-                        <div class="col-sm-3">
-                            <a href="/removecart/{{ $item->cart_id }}" class="btn btn-warning">Remove From Cart</a>
+    <div class="container-fluid" style="padding-top: 150px">
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-8">
+                <div class="trending-wrapper">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between">
+                                <h4 class="text-uppercase">Shopping Cart</h4>
+                                <a href="ordernow" role="button" class="btn btn-success">Order Now</a>
+                            </div>
                         </div>
                     </div>
-                    
-                @endforeach
-            </div>
-            <a href="ordernow" class="btn btn-success">Order Now</a><br><br>
+                    <table class="table table-bordered table-responsive-md">
+                        <thead>
+                        <tr>
+                            <th>S/N</th>
+                            <th>IMAGE</th>
+                            <th>NAME</th>
+                            <th>PRICE</th>
+                        </tr>
+                        </thead>
 
+                        <tbody>
+
+                        @php($count = 0)
+                        @foreach ($products as $product)
+                            @php($count += 1)
+                            <tr>
+                                <td>{{$count}}</td>
+                                <td>
+                                    <img src="{{$product->gallery}}" alt="{{$product->name}}"
+                                         class="img-fluid img-thumbnail" style="width: 100px; height: 100px">
+                                </td>
+                                <td>{{$product->name}}</td>
+                                <td>{{$product->price}}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-</div>    
+    </div>
 
 @endsection
