@@ -8,10 +8,12 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^7.3|^8.0",
+        "php": "^8.0",
+        "ahmard/flutterwave": "^0.0.6",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
+        "intervention/image": "^2.5",
         "laravel/framework": "^8.12",
         "laravel/tinker": "^2.5",
         "nicolaslopezj/searchable": "^1.13"
