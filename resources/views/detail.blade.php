@@ -9,8 +9,8 @@
                 </div>
             </div>
         
-            <div class="col-sm-6">
-                <a href="/">Go Back</a>
+            <div class="col-sm-4">
+                <a href="/"><button class="btn btn-warning">Go Back</button></a><br><br>
                 <h2>Name: {{ $product->name }}</h2>
                 <h3>Price: {{ $product->price }}</h3>
                 <h4>Details: {{ $product->description }}</h4>
@@ -23,7 +23,6 @@
                      <button class="btn btn-primary">Add To Cart</button>
                 </form>
                 <br><br>
-                <button class="btn btn-success">Buy Now</button>
                 <br><br>
             </div>
         </div>
