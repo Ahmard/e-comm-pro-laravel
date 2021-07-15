@@ -1,3 +1,12 @@
+<?php
+use App\Http\Controllers\ProductController;
+$total =0;
+if(Session::has('user'))
+{
+    $total = ProductController::cartItem();
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,6 +37,7 @@
     <link rel="stylesheet" href="{{asset('assets/assets/css/owl.css')}}">
 
 </head>
+
 
 <body>
 
@@ -66,8 +76,10 @@
                     </li>
                     @auth
                         <li class="nav-item">
+                            
                             <a class="nav-link" href="{{url('cart')}}">
-                                <i class="fa fa-shopping-cart"></i> Cart
+                                
+                                <i class="fa fa-shopping-cart"></i> Cart ({{ $total }})
                             </a>
                         </li>
                         <li class="nav-item">
@@ -75,7 +87,7 @@
                                 <i class="fa fa-sign-out"></i> Logout
                             </a>
                         </li>
-                    @elseauth
+                    @else
                         <li class="nav-item @isset($navs['in_about_us']) active @endisset">
                             <a class="nav-link" href="{{url('about-us')}}">
                                 About Us
@@ -86,6 +98,18 @@
                             <a class="nav-link" href="{{url('contact-us')}}">
                                 Contact Us
                                 @isset($navs['in_contact_us']) <span class="sr-only">(current)</span> @endisset
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{url('register')}}">
+                                <i class="fa fa-sign-up"></i> Register
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{url('login')}}">
+                                <i class="fa fa-sign-in"></i> Login
                             </a>
                         </li>
                     @endauth

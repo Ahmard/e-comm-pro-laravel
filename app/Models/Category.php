@@ -11,7 +11,7 @@ class Category extends Model
 
     protected $fillable = ['name', 'desc', 'icon'];
 
-    public static function getName(int $categoryId): string
+    public static function getName(string $categoryId): string
     {
         return self::query()
             ->find($categoryId)

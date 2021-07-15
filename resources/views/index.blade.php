@@ -4,7 +4,15 @@
 @section('title', 'Homepage')
 
 @section('content')
+<?php
+use App\Http\Controllers\ProductController;
+$total =0;
+if(Session::has('user'))
+{
+    $total = ProductController::cartItem();
+}
 
+?>
     <!-- Banner Starts Here -->
     <div class="banner header-text">
         <div class="owl-banner owl-carousel">
