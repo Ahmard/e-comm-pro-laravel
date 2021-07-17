@@ -91,7 +91,7 @@ class ProductController extends Controller
     public function removeCart(int $id): Redirector|Application|RedirectResponse
     {
         Cart::destroy($id);
-        return redirect('cartlist');
+        return redirect('cart');
     }
 
     public function orderNow(): Factory|View|Application
@@ -99,6 +99,7 @@ class ProductController extends Controller
         $userId = Auth::user()['id'];
 
         $allCart = Cart::query()->where('user_id', $userId)->get();
+        
 
         $total = DB::table('cart')
             ->join('products', 'cart.product_id', 'products.id')
@@ -142,4 +143,17 @@ class ProductController extends Controller
 
         return view('myorders', ['orders' => $orders]);
     }
+
+    public function checkOut()
+    {
+        $userId = Auth::user()['id'];
+        $products = DB::table('cart')
+            ->join('products', 'cart.product_id', 'products.id')
+            ->where('cart.user_id', $userId)
+            ->select('products.*', 'cart.quantity', 'cart.id as cart_id')
+            ->get();
+
+        return view('checkout', ['products' => $products]);
+    }
+    
 }

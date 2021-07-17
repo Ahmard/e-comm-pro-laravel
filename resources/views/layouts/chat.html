@@ -1,0 +1,776 @@
+
+Chat with Laravel – Pusher and Socket.io at your command
+From time to time we are asked to integrate a real-time chat application or real-time notifications in our system. While this can be painful there is no actual need to be afraid of the time consumption. With this tutorial I’ll try to show you how to create a very basic chat application tutorial which can be easily transformed into any type of notification or real-time data synchronisation without much effort or coding using either Pusher or Socket.io. 
+
+What will our goal be?
+Our main goal will be understanding how to push an event from our back-end server to our front-end page without a need of page refresh or tedious API calls every X time unit. As a side bonus, we will actually make a chat system that will allow us to chat one on one with any user in the system via simple chat logic. 
+
+Preparations for the development
+The obvious – Laravel project and everything that is required to run it
+Pusher account OR Socket.IO installation (you will be provided with both use cases and examples so you will have the ability to choose what is suited for you)
+NPM manager (to compile VueJS files and launch Socket.IO if chosen)
+Things to consider
+Before we start, I’d like to give some comparisons between two services – Pusher and Socket.io which might help you to decide which is more suited for you.
+
+Pusher:
+This is an all out of the box SaaS solution for your needs. Very simple to set up, use and debug as you will have a full dashboard available for you with different measures, logs and details. The only drawback I could see – it is paid service and could get quite pricy if used in big applications.
+
+Socket.io:
+This is a DYI service that will enable you to have multiple ports open, will work on different systems and will not tie you to any SaaS product as everything is configurable and it runs on node. While this if a free service, you will have to manually run a service that will sync events so this option might be limiting factor if you are running in a shared server or you don’t have an access to servers services.
+
+Preparing back-end
+I’ll start with back-end preparations which will include:
+
+Database for users, messages (includes Models, Migrations)
+User registration and initial page loading
+API Endpoint connections (to accept/return messages)
+Events management
+This might seem scary but we need only few things in each category to get our application up and running with our basic example.
+
+Auth scaffolding
+To start with the preparation, we will use the Laravel auth scaffolding which will give us – registration, login pages and unauthorised and authorised view pages. This is helpful as we will be re-using them.
+Run this command:
+
+php artisan make:auth
+.env settings
+We need to prepare out Laravel instance for pusher or socket.io usage by changing these values:
+
+Pusher:
+
+BROADCAST_DRIVER=pusher
+
+PUSHER_APP_ID=YOUR_ID
+PUSHER_APP_KEY=YOUR_KEY
+PUSHER_APP_SECRET=YOUR_SECRET
+PUSHER_APP_CLUSTER=YOUR_CLUSTER
+Socket.io:
+
+BROADCAST_DRIVER=redis
+Composer
+For pusher we need to install this package:
+
+composer require pusher/pusher-php-server
+and for socket.io we need this:
+
+composer require predis/predis
+Database, models and migrations
+Lets start with basic things first, create the structure of our chat application:
+
+Run following commands and fill the files with content next to it to re-create the migrations needed:
+
+php artisan make:model Message -m
+This will create a model names Message and migration alongside it, which we will fill with:
+
+Schema::create('messages', function (Blueprint $table) {
+            $table->increments('id');
+            $table->unsignedInteger('sender_id');
+            $table->unsignedInteger('receiver_id');
+            $table->text('message');
+            $table->timestamps();
+
+            $table->foreign('sender_id')->references('id')->on('users');
+            $table->foreign('receiver_id')->references('id')->on('users');
+        });
+And as a final step, lets fill our Message.php model:
+
+class Message extends Model
+{
+    protected $fillable = [
+        'sender_id',
+        'receiver_id',
+        'message',
+    ];
+
+    protected $with = ['sender', 'receiver'];
+
+    public function scopeBySender($q, $sender)
+    {
+        $q->where('sender_id', $sender);
+    }
+
+    public function scopeByReceiver($q, $sender)
+    {
+        $q->where('receiver_id', $sender);
+    }
+
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'sender_id')->select(['id', 'name']);
+    }
+
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'receiver_id')->select(['id', 'name']);
+    }
+}
+Next we need to modify our User.php model:
+
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+}
+That is it on our database, models and migrations setup. We have fully created a message model that will keep track of our sent/received messages.
+
+Controllers
+Next step would be to set up our controllers – API endpoints. We are not protecting them by any means with any login information as this could be done in many different ways so this part is for you. 
+
+Lets create our Users api controller:
+
+php artisan make:controller Api/V1/UsersController
+And fill it with this function: (File location: app/Http/Controllers/Api/V1/UsersController.php)
+
+use App\User;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+class UsersController extends Controller
+{
+    public function index()
+
+    {
+        return User::orderBy('name')->where('id', '!=', auth()->user()->id)->get();
+    }
+}
+As we only need a users list to be available for us, we will only use index method.
+
+Next would be Messages controller which we will use for all of our logic:
+
+php artisan make:controller Api/V1/MessagesController --api
+And fill the newly created file with these methods: (File location: app/Http/Controllers/Api/V1/MessagesController.php)
+
+use App\Events\MessageSent;
+use App\Message;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+class MessagesController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        return auth()
+            ->user()
+            ->messages()
+            ->where(function ($query) {
+                $query->bySender(request()->input('sender_id'))
+                    ->byReceiver(auth()->user()->id);
+            })
+            ->orWhere(function ($query) {
+                $query->bySender(auth()->user()->id)
+                    ->byReceiver(request()->input('sender_id'));
+            })
+            ->get();
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $message = Message::create([
+            'sender_id'   => $request->input('sender_id'),
+            'receiver_id' => $request->input('receiver_id'),
+            'message'     => $request->input('message'),
+        ]);
+
+        broadcast(new MessageSent($message));
+
+        return $message->fresh();
+    }
+}
+In the index method we are going to get all messages that belongs to the authorised user and the selected user as either recipient or sender.
+As for saving message – it is a very simple saving with broadcasting of event which we will cover next.
+
+Broadcasting an event
+In order to listen for any action of the server via sockets – we need to broadcast an event. This event will contain the message details and will be directly channeled to the user that has to receive the message. Of course there are many other ways to do this but for the sake of simplicity – I’ll be demonstrating the easiest way without any authentication and with semi-public channel as there are quite a few tutorials that show you how to setup authenticated events. One of them:
+https://laravel.com/docs/master/broadcasting#authorizing-channels
+
+Lets make a new event:
+
+php artisan make:event MessageSent
+This will make a file in: app/Events/MessageSent.php Lets open it and broadcast our message:
+
+use App\Message;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class MessageSent implements ShouldBroadcastNow
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+    /**
+     * @var Message
+     */
+    public $message;
+
+    /**
+     * Create a new event instance.
+     *
+     * @param Message $message
+     */
+    public function __construct(Message $message)
+    {
+        $this->message = $message;
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return \Illuminate\Broadcasting\Channel|array
+     */
+    public function broadcastOn()
+    {
+        return new Channel('newMessage-' . $this->message->sender_id . '-' . $this->message->receiver_id);
+    }
+}
+With this, we are saying that the event needs a Message instance to get and it’s public to be accessed by anyone listening to this event. Next, we are broadcasting it on the channel that is formatted like this:
+
+newMessage-[Sender ID]-[Receiver ID]
+Which tells our system that we should listen it in this format:
+
+newMessage-[ID of the user that we are chatting with]-[Our ID]
+That is it – we have our Event logic prepared. Now we are going to start on implementing it in our system, which in the end will work as a simple chat.
+
+Routes
+As for the routes, we only need api routes to be created as normal ones were created when we launched the make:auth command. So, open the web.php file and add these lines at the end of it. (we are not using full api in order to prevent unsecured usage of it)
+
+Route::get('api/users', 'Api\V1\UsersController@index');
+Route::post('api/messages', 'Api\V1\MessagesController@index');
+Route::post('api/messages/send', 'Api\V1\MessagesController@store');
+That is it, we have registered routes for:
+
+Retrieving users list in order to chat with them
+Retrieving all messages between selected user and authorised user
+Sending a new message to selected user
+Views
+We will only need two files in here as everything else will be taken care with VueJS. Lets open: resources/views/home.blade.php and modify it to look like this:
+
+@extends('layouts.app')
+
+@section('content')
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <chat-application></chat-application>
+            </div>
+        </div>
+    </div>
+@endsection
+Now lets open our: resources/views/layouts/app.blade.php and add the following line right after the CSRF token field so it looks like this:
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+        <meta name="userID" content="{{ auth()->user()->id }}">
+    @endauth
+Tha is it – we are initialising our VueJS component called ChatApplication and it will take care of displaying user list and chat messages. Feel free to modify this to your needs as the main part is the component call here.
+
+Javascript
+The javascript is going to be our main system so this part is going to be a bit longer than the previous ones. I’ll try to explain everything we will have going on there as much as I can.
+Keep in mind that I’ll separate code blocks for both Pusher and Socket.io that you wouldn’t have to use any of the code you don’t need.
+
+NPM packages for pusher:
+We will only need a single package – official pusher library here:
+
+npm install pusher-js
+NPM packages for Socket.io:
+With socket.io we are going to use Laravel Echo service in order to handle the events in more convenient way. Please keep in mind that Laravel Echo can be used with Pusher but I intentionally kept it as native as possible.
+
+npm install laravel-echo
+npm install socket.io
+npm install socket.io-client
+Building the Javascript application
+Next thing is our resources/js/app.js modification, where we will add our new component and assign “userID” to our logged in users ID:
+
+/**
+ * First we will load all of this project's JavaScript dependencies which
+ * includes Vue and other libraries. It is a great starting point when
+ * building robust, powerful web applications using Vue and Laravel.
+ */
+
+require('./bootstrap')
+
+window.Vue = require('vue')
+
+/**
+ * Next, we will create a fresh Vue application instance and attach it to
+ * the page. Then, you may begin adding components to this application
+ * or customize the JavaScript scaffolding to fit your unique needs.
+ */
+
+Vue.component('example-component', require('./components/ExampleComponent.vue'))
+Vue.component('chat-application', require('./components/ChatApplication.vue'))
+
+const app = new Vue({
+  el: '#app',
+  data: {
+    userID: null
+  },
+  mounted () {
+    // Assign the ID from meta tag for future use in application
+    this.userID = document.head.querySelector('meta[name="userID"]').content
+  }
+})
+And while we are here, on the core of our application – lets set up bootstrap methods so that it would load plugins needed for Pusher or Socket.io:
+
+Pusher:
+
+window._ = require('lodash')
+window.Popper = require('popper.js').default
+// Pusher
+window.Pusher = require('pusher-js')
+
+
+/**
+ * We'll load jQuery and the Bootstrap jQuery plugin which provides support
+ * for JavaScript based Bootstrap features such as modals and tabs. This
+ * code may be modified to fit the specific needs of your application.
+ */
+
+try {
+  window.$ = window.jQuery = require('jquery')
+
+  require('bootstrap')
+} catch (e) {
+}
+
+/**
+ * We'll load the axios HTTP library which allows us to easily issue requests
+ * to our Laravel back-end. This library automatically handles sending the
+ * CSRF token as a header based on the value of the "XSRF" token cookie.
+ */
+
+window.axios = require('axios')
+
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+
+/**
+ * Next we will register the CSRF Token as a common header with Axios so that
+ * all outgoing HTTP requests automatically have it attached. This is just
+ * a simple convenience so we don't have to attach every token manually.
+ */
+
+let token = document.head.querySelector('meta[name="csrf-token"]')
+
+if (token) {
+  window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content
+} else {
+  console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token')
+}
+
+/**
+ * Echo exposes an expressive API for subscribing to channels and listening
+ * for events that are broadcast by Laravel. Echo and event broadcasting
+ * allows your team to easily build robust real-time web applications.
+ */
+Socket.io
+
+import Echo from 'laravel-echo'
+
+window._ = require('lodash')
+window.Popper = require('popper.js').default
+window.io = require('socket.io-client')
+
+// Socket.io
+window.Echo = new Echo({
+  broadcaster: 'socket.io',
+  host: window.location.hostname + ':6001'
+})
+
+/**
+ * We'll load jQuery and the Bootstrap jQuery plugin which provides support
+ * for JavaScript based Bootstrap features such as modals and tabs. This
+ * code may be modified to fit the specific needs of your application.
+ */
+
+try {
+  window.$ = window.jQuery = require('jquery')
+
+  require('bootstrap')
+} catch (e) {
+}
+
+/**
+ * We'll load the axios HTTP library which allows us to easily issue requests
+ * to our Laravel back-end. This library automatically handles sending the
+ * CSRF token as a header based on the value of the "XSRF" token cookie.
+ */
+
+window.axios = require('axios')
+
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+
+/**
+ * Next we will register the CSRF Token as a common header with Axios so that
+ * all outgoing HTTP requests automatically have it attached. This is just
+ * a simple convenience so we don't have to attach every token manually.
+ */
+
+let token = document.head.querySelector('meta[name="csrf-token"]')
+
+if (token) {
+  window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content
+} else {
+  console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token')
+}
+
+/**
+ * Echo exposes an expressive API for subscribing to channels and listening
+ * for events that are broadcast by Laravel. Echo and event broadcasting
+ * allows your team to easily build robust real-time web applications.
+ */
+And now, we are ready to go with our application main file – VueJS component. It will handle all of our UI/UX display, users list loading, messages loading and message sending with few methods. I’ve tried to keep the names clear as much as possible so you shouldn’t be able to get lost. Not to mention that the file itself is around 150 lines long.
+
+Create a file:
+resources/js/components/ChatApplication.vue
+And paste the needed content:
+
+Pusher version:
+
+<template>
+    <div>
+        <div class="row">
+            <div class="col-4">
+                <h3>Users list</h3>
+                <ul class="nav flex-column">
+                    <li v-for="user in users"
+                        class="nav-link"
+                        :key="user.id"
+                        @click="openChat(user.id)"
+                        :class="{'font-weight-bold': chatUserID === user.id}">
+                        <a href="#">{{ user.name }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-8">
+                <div v-show="chatOpen && !loadingMessages">
+                    <div class="row" style="max-height: 50vh; overflow: scroll; padding-bottom: 50px" ref="messageBox">
+                        <div class="col-12" v-for="message in messages"
+                             :class="{'text-right': message.sender_id !== chatUserID}">
+                            <small>{{ message.sender.name }} at {{ message.created_at }}</small>
+                            <p>
+                                {{ message.message }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="input-group mb-3">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="New message"
+                                       aria-label="New message"
+                                       aria-describedby="button-addon2" v-model="newMessage">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary"
+                                            type="button"
+                                            id="button-addon2"
+                                            @click="sendMessage">
+                                        Send message
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-show="loadingMessages">
+                    <p>Loading messages... Please wait</p>
+                </div>
+                <div v-show="!chatOpen && !loadingMessages">
+                    <p>No chat room is open. Please click on user to start a conversation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+  export default {
+    name: 'ChatApplication',
+    data: () => {
+      return {
+        users: [],
+        messages: [],
+        chatOpen: false,
+        chatUserID: null,
+        loadingMessages: false,
+        newMessage: ''
+      }
+    },
+    created () {
+      let app = this
+      app.loadUsers()
+    },
+    watch: {
+      messages: function () {
+        let element = this.$refs.messageBox
+        element.scrollTop = element.scrollHeight
+      }
+    },
+    methods: {
+      openChat (userID) {
+        let app = this
+        if (app.chatUserID !== userID) {
+          app.chatOpen = true
+          app.chatUserID = userID
+
+          // Start pusher listener
+          Pusher.logToConsole = true
+
+          var pusher = new Pusher('YOUR_KEY', {
+            cluster: 'eu',
+            forceTLS: true
+          })
+
+          var channel = pusher.subscribe('newMessage-' + app.chatUserID + '-' + app.$root.userID) // newMessage-[chatting-with-who]-[my-id]
+
+          channel.bind('App\\Events\\MessageSent', function (data) {
+            if (app.chatUserID) {
+              app.messages.push(data.message)
+            }
+          })
+          // End pusher listener
+          app.loadMessages()
+        }
+      },
+      loadUsers () {
+        let app = this
+        axios.get('api/users')
+          .then((resp) => {
+            app.users = resp.data
+          })
+      },
+      loadMessages () {
+        let app = this
+        app.loadingMessages = true
+        app.messages = []
+        axios.post('api/messages', {
+          sender_id: app.chatUserID
+        }).then((resp) => {
+          app.messages = resp.data
+          app.loadingMessages = false
+        })
+      },
+      sendMessage () {
+        let app = this
+        if (app.newMessage !== '') {
+          axios.post('api/messages/send', {
+            sender_id: app.$root.userID,
+            receiver_id: app.chatUserID,
+            message: app.newMessage
+          }).then((resp) => {
+            app.messages.push(resp.data)
+            app.newMessage = ''
+          })
+        }
+      }
+    }
+  }
+</script>
+Socket.io version:
+
+<template>
+    <div>
+        <div class="row">
+            <div class="col-4">
+                <h3>Users list</h3>
+                <ul class="nav flex-column">
+                    <li v-for="user in users"
+                        class="nav-link"
+                        :key="user.id"
+                        @click="openChat(user.id)"
+                        :class="{'font-weight-bold': chatUserID === user.id}">
+                        <a href="#">{{ user.name }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-8">
+                <div v-show="chatOpen && !loadingMessages">
+                    <div class="row" style="max-height: 50vh; overflow: scroll; padding-bottom: 50px" ref="messageBox">
+                        <div class="col-12" v-for="message in messages"
+                             :class="{'text-right': message.sender_id !== chatUserID}">
+                            <small>{{ message.sender.name }} at {{ message.created_at }}</small>
+                            <p>
+                                {{ message.message }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="input-group mb-3">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="New message"
+                                       aria-label="New message"
+                                       aria-describedby="button-addon2" v-model="newMessage">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary"
+                                            type="button"
+                                            id="button-addon2"
+                                            @click="sendMessage">
+                                        Send message
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-show="loadingMessages">
+                    <p>Loading messages... Please wait</p>
+                </div>
+                <div v-show="!chatOpen && !loadingMessages">
+                    <p>No chat room is open. Please click on user to start a conversation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+  export default {
+    name: 'ChatApplication',
+    data: () => {
+      return {
+        users: [],
+        messages: [],
+        chatOpen: false,
+        chatUserID: null,
+        loadingMessages: false,
+        newMessage: ''
+      }
+    },
+    created () {
+      let app = this
+      app.loadUsers()
+    },
+    watch: {
+      messages: function () {
+        let element = this.$refs.messageBox
+        element.scrollTop = element.scrollHeight
+      }
+    },
+    methods: {
+      openChat (userID) {
+        let app = this
+        if (app.chatUserID !== userID) {
+          app.chatOpen = true
+          app.chatUserID = userID
+          
+          // Start socket.io listener
+          Echo.channel('newMessage-' + app.chatUserID + '-' + app.$root.userID)
+            .listen('MessageSent', (data) => {
+              if (app.chatUserID) {
+                app.messages.push(data.message)
+              }
+            })
+          // End socket.io listener
+          app.loadMessages()
+        }
+      },
+      loadUsers () {
+        let app = this
+        axios.get('api/users')
+          .then((resp) => {
+            app.users = resp.data
+          })
+      },
+      loadMessages () {
+        let app = this
+        app.loadingMessages = true
+        app.messages = []
+        axios.post('api/messages', {
+          sender_id: app.chatUserID
+        }).then((resp) => {
+          app.messages = resp.data
+          app.loadingMessages = false
+        })
+      },
+      sendMessage () {
+        let app = this
+        if (app.newMessage !== '') {
+          axios.post('api/messages/send', {
+            sender_id: app.$root.userID,
+            receiver_id: app.chatUserID,
+            message: app.newMessage
+          }).then((resp) => {
+            app.messages.push(resp.data)
+            app.newMessage = ''
+          })
+        }
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+That is it. If you were to run the following commands on your server – you may load the Laravel page and register to it (I recommend you to register at least two accounts, so you could chat using different browsers or incognito mode).
+
+npm run prod
+// If using socket.io - run next commands, if not - skip them.
+laravel-echo-server start
+// If not running:
+redis-server
+After loading the Laravel project, you should see this:
+
+
+Users list on the left and no messages.
+Now if you click on the user, you may send him some messages:
+
+
+As you can see, we have an input and a button to send a message
+And the user will receive a message from you in real time – no more delays.
+
+That is it – you now have a fully working chat application that you might extend to your needs or use the same logic to display real-time notifications and other messages/items to users. For example, you can implement this to track a scoreboard in real time – just append the data received from event to a table and you will be good to go.
+
+How this can be used or extended
+While this chat application example is working – it is by no means recommended to be used in production as it is the basic example with no actual data protection nor usable and responsive UX. That said, you are free to extend this with your needs, here are some of my recommendations:
+
+Nicer UI/UX solution
+Indicators for new messages in chats
+Typing indicator using “whisper” functionality
+Group chats (this needs rework in the database level)
+Protected API endpoints
+Protected Event listeners/Broadcasters
+Attachment uploads
+All in all, you should get a feel of how the real-time chat applications work and how to handle the sockets on your front-end and back-end. 

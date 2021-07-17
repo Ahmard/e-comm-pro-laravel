@@ -101,11 +101,7 @@ if(Session::has('user'))
                             </a>
                         </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{url('register')}}">
-                                <i class="fa fa-sign-up"></i> Register
-                            </a>
-                        </li>
+                        
 
                         <li class="nav-item">
                             <a class="nav-link" href="{{url('login')}}">

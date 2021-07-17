@@ -11,7 +11,7 @@
                         <div class="card-header">
                             <div class="d-flex justify-content-between">
                                 <h4 class="text-uppercase">Shopping Cart</h4>
-                                <a href="{{route('order.now')}}" role="button" class="btn btn-success">Order</a>
+                                <a href="{{route('order.now')}}" role="button" class="btn btn-success">Proceed To Payment</a>
                             </div>
                         </div>
                     </div>
@@ -24,6 +24,8 @@
                             <th>QUANTITY</th>
                             <th>PRICE</th>
                             <th>TOTAL PRICE</th>
+                            <th>ACTION</th>
+
                         </tr>
                         </thead>
 
@@ -44,6 +46,21 @@
                                 <td>{{$product->quantity}}</td>
                                 <td>&#8358; {{\App\Models\Product::formatMoney($product->price)}}</td>
                                 <td>&#8358; {{\App\Models\Product::formatMoney($product->price * $product->quantity)}}</td>
+                                <td>
+                                
+                                    <form action="{{route('cart.remove' , $product->id)}}" method="POST">
+                                    @csrf
+                                    <div class="text-right">
+                                        <a href="/removecart/{{ $product->id }}" class="btn btn-warning">Remove</a>
+                                    </div>
+
+                                    <div class="text-right">
+                                        <a href="/removecart/{{ $product->id }}" class="btn btn-primary">Save for later</a>
+                                    </div>
+
+                                    </form>
+                               
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>

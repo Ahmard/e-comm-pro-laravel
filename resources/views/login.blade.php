@@ -25,9 +25,15 @@
                                        placeholder="Password">
                             </div>
 
-                            <div class="text-right">
+                            <div class="text-left">
                                 <button type="submit" class="btn btn-primary">Login</button>
+                                <h2>Or </h2>
+                                    <a href="{{url('register')}}"  class="btn btn-primary"> Register</a>
+                               
                             </div>
+
+                            
+                            
                         </form>
                     </div>
                 </div>
