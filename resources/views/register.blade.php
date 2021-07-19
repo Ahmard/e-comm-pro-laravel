@@ -15,12 +15,12 @@
                                 @csrf
                                 <label for="exampleInputEmail1">Username</label>
                                 <input type="text" name="name" class="form-control" id="exampleInputEmail1"
-                                       placeholder="Email">
+                                       placeholder="choose a username">
                             </div>
                             <div class="form-group">
                                 <label for="exampleInputPassword1">Email</label>
                                 <input type="email" name="email" class="form-control" id="exampleInputPassword1"
-                                       placeholder="Password">
+                                       placeholder="email">
                             </div>
 
                             <div class="form-group">
